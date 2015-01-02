@@ -331,6 +331,23 @@ abstract class REST_Controller extends CI_Controller
         }
 
     }
+    
+    public function prettyDate($timestamp, $compare)
+    {
+       
+        $timeCalc = $timestamp - $compare;
+        
+        if ($timeCalc > (60*60*24)) {$timeCalc = round($timeCalc/60/60/24) . " days ago";}
+                
+        else if ($timeCalc > (60*60)) {$timeCalc = round($timeCalc/60/60) . " hours ago";}
+                
+        else if ($timeCalc > 60) {$timeCalc = round($timeCalc/60) . " minutes ago";}
+                
+        else if ($timeCalc > 0) {$timeCalc .= " seconds ago";}
+                
+        return $timeCalc;
+        
+    }
 
     /**
      * Remap

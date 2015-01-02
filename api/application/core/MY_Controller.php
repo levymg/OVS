@@ -17,6 +17,14 @@ class MY_Controller extends CI_Controller
         
     }
     
+    public function json_response($array)
+    {
+        
+       $this->output->set_content_type('application/json')
+               ->set_output(json_encode(array("statusCode" => 200, "errors" => $array)));
+        
+    }
+    
    
     
 }
