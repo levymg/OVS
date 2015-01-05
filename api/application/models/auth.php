@@ -28,6 +28,7 @@ class Auth extends MY_Model
                     "modified_on" => time(),
                     "usage_level" => 0
                 );
+      
       $exists = $this->get_by('email', $data["email"]);
       
       if($exists)
@@ -38,6 +39,7 @@ class Auth extends MY_Model
             return $result;
           
       }
+      
       else
       {
           
@@ -45,12 +47,26 @@ class Auth extends MY_Model
         
         if($result) :
             
-            $result = new StdClass();
-            $result->status = 200;
-            $result->callback = "view/static/splash-main.html";
-            $result->focus = "#login-form";
-            $result->message = "Please sign in.";
-            return $result;
+            $response = new StdClass();
+            $response->status = 200;
+            $response->callback = "view/static/splash-main.html";
+            $response->focus = "#login-form";
+            $response->message = "Please sign in.";
+            
+            $formData = 
+                    
+                        array(
+                
+                                "user_id" => $this->db->insert_id(),
+                                "notification_id" => 7,
+                                "created_on" => time(),
+                                "expires" => time() * 60*60
+                            
+                        );
+            
+            $this->notifications_mdl->create_notification($formData);
+            
+            return $response;
         
         endif;
         
@@ -61,7 +77,7 @@ class Auth extends MY_Model
   public function authenticate($formData)
   {
       
-      $data = array(
+       $data = array(
           
                     "email" => $formData["email"],
                     "password" => base64_encode(hash("sha256", $formData["password"])),
@@ -109,6 +125,16 @@ class Auth extends MY_Model
                     );
           
           $this->update($exists->user_id, $args);
+          
+          $data = array(
+              
+                 "user_id" => $exists->user_id,
+                 "token" => base64_encode(hash_hmac('sha256', $exists->user_id, "xyz123", true)),
+                 "created_on" => time()
+              
+          );
+          
+          $this->db->insert("gc_user_tokens", $data);
           
             $result = new StdClass();
             $result->status = 200;
@@ -162,8 +188,156 @@ class Auth extends MY_Model
             return $result;
           }
             
-          }
+        }
         
+    }
+      
+      public function update_profile($formData) {
+          
+        
+        if(isset($formData["password"]))
+        {
+
+            $formData["password"] = base64_encode(hash("sha256", $formData["password"]));
+
+        }
+           
+        $data = (object) $formData;
+        
+        $args = array("user_id" => $data->user_id);
+        
+        $exists = $this->as_object()->get_by($args);
+        
+        if($exists->usage_level == 0 && !isset($formData["password"]))
+        {
+            
+            $formData["usage_level"] = 1;
+            
+            $notificationData = 
+                    
+                        array(
+                
+                                "user_id" => $data->user_id,
+                                "notification_id" => 1,
+                                "created_on" => time(),
+                                "expires" => time() * 60*60
+                            
+                        );
+            
+            $this->notifications_mdl->create_notification($notificationData);
+            
+        }
+          
+        $this->db->where("user_id", $data->user_id);
+        
+        $this->db->set($formData);
+        
+        $query = $this->db->update("gc_users");
+        
+        if($query)
+        {
+            
+            
+            if(isset($formData["password"]))
+            {
+                
+                    $notificationData = 
+
+                                array(
+
+                                        "user_id" => $data->user_id,
+                                        "notification_id" => 8,
+                                        "created_on" => time(),
+                                        "expires" => time() * 60*2
+
+                                );
+
+                    $this->notifications_mdl->create_notification($notificationData);
+                    
+            }
+            
+            $response = array(
+                
+                            "message" => "Profile updated.",
+                            "callback" => "processAction",
+                            "user_id" => $data->user_id,
+                            "responseCode" => 200
+            );
+            
+        }
+        
+        else
+        {
+            
+            $response = array(
+                
+                            "message" => "There was an error updating your profile.",
+                            "callback" => "edit-profile",
+                            "responseCode" => 400
+            );
+            
+        }
+        
+        return $response;
+          
       }
       
-  }
+      public function check_creds($formData)
+      {
+          
+         $data = (object) $formData;
+          
+         $args = array("user_id" => $data->user_id, "password" => base64_encode(hash("sha256", $data->password)));
+        
+         $exists = $this->as_object()->get_by($args);
+         
+         if($exists)
+         {
+             
+             return TRUE;
+             
+         }
+         else
+         {
+             
+             return FALSE;
+             
+         }
+          
+          
+      }
+      
+      public function reset_password($formData)
+      {
+          
+          $args = array("email" => $formData);
+          
+          $exists = $this->as_object()->get_by($args);
+          
+          if($exists)
+          {
+              
+            $result = new StdClass();
+            $result->callback = "view/static/splash-main.html";
+            $result->focus = "#login-form";
+            $result->message = "Your password has been sent.";
+            $result->status = 200;
+              
+          }
+          
+          else
+          {
+              
+            $result = new StdClass();
+            $result->status = 403;
+            $result->message = "The user was not found.";
+              
+              
+          }
+          
+          return $result;
+          
+          
+      }
+          
+}
