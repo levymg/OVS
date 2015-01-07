@@ -77,7 +77,7 @@ class Gcusers extends REST_Controller
                                         );
 
                             $this->response($response, 403);
-
+                            
                         }
 
                         else
@@ -86,9 +86,9 @@ class Gcusers extends REST_Controller
                             $formData = array("email" => $this->input->post("email"), "password" => $this->input->post("password"));
 
                             $response = $this->auth->create_user($formData);
-
+                            
                             $this->response($response, $response->status);
-
+                            
                         }
 
                     }
@@ -159,8 +159,27 @@ class Gcusers extends REST_Controller
             if($this->get('user_id'))
             {
              
-                        if($this->input->post("action") == "edit-profile")
+                        if($this->input->post("action") == "edit-profile"  && $this->input->post("token"))
                         {
+                            
+                           $token = array(
+                                            "user_id" => $this->get('user_id'), 
+                                            "token" => $this->input->post("token")
+                                        );
+                            
+                            $token_auth = $this->auth->authenticate_token($token);
+                            
+                            if($token_auth->status === 403)
+                            {
+                                
+                                 $response = array(
+                                                    "message" => $token_auth->message,
+                                                    "callback" => "edit-profile"
+                                            );
+
+                            $this->response($response, 403);
+                                
+                            }
                             
                             $this->form_validation->set_rules('first_name', 'First Name', 'required|xss_clean');
                             $this->form_validation->set_rules('last_name', 'Last Name', 'required|xss_clean');
@@ -273,6 +292,35 @@ class Gcusers extends REST_Controller
                                 }
                                 
                             }
+                            
+                            elseif($this->input->post("action") == "logout")
+                            {
+                                
+                                $formData = array("user_id" => $this->get("user_id"), "token" => $this->input->post("token"), "expired" => time());
+                        
+                                $token_auth = $this->auth->authenticate_token($formData);
+
+                                    if(!$token_auth)
+                                    {
+
+                                         $response = array(
+                                                            "message" => "Invalid login",
+                                                            "callback" => "edit-profile"
+                                                    );
+
+                                        $this->response($response, 403);
+
+                                    }
+                                    
+                                    else
+                                    {
+
+                                            $response = array("message" => "Success", "callback" => "logout");
+                                            $this->response($response, 200);
+
+                                    }
+
+                            }
                     
             }
            
@@ -315,31 +363,22 @@ class Gcusers extends REST_Controller
         function users_get()
         {
             
-            $users = array(
-                            array('id' => 1, 'name' => 'Some Guy', 'email' => 'example1@example.com'),
-                            array('id' => 2, 'name' => 'Person Face', 'email' => 'example2@example.com'),
-                            3 => array('id' => 3, 'name' => 'Scotty', 'email' => 'example3@example.com', 'fact' => array('hobbies' => array('fartings', 'bikes'))),
-                    );
-
+            $users = $this->auth->get_users();
+            
             if($users)
             {
+                
                 $this->response($users, 200);
+                
             }
 
             else
             {
-                $this->response(array('error' => 'Couldn\'t find any users!'), 404);
+                
+                $this->response(array('error' => 'No users exist.'), 404);
+                
             }
+            
         }
-
-        public function send_post()
-        {
-                var_dump($this->request->body);
-        }
-
-
-        public function send_put()
-        {
-                var_dump($this->put('foo'));
-        }
+        
 }

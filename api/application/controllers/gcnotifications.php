@@ -37,7 +37,10 @@ class GCNotifications extends REST_Controller
             else
             {
                 
-                $this->response("No Notifications", 403);
+                $result = $this->notifications_mdl->get_last_notification('user_id', $this->get('user_id'));
+                
+                $this->response(array("next" => $result), 403);
+                
             }
             
         }

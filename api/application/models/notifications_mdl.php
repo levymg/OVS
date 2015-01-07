@@ -21,7 +21,7 @@ class Notifications_mdl extends MY_Model
         
         $this->db->from('gc_user_notifications');
         
-        $this->db->join('gc_notifications', 'gc_user_notifications.user_id = ' . $user_id . ' AND gc_user_notifications.expires != 1 AND gc_user_notifications.notification_id = gc_notifications.notification_id ORDER BY created_on DESC');
+        $this->db->join('gc_notifications', 'gc_user_notifications.user_id = ' . $user_id . ' AND gc_user_notifications.expires != 1 AND gc_user_notifications.notification_id = gc_notifications.notification_id ORDER BY created_on ASC');
 
         $query = $this->db->get();
         
@@ -35,7 +35,7 @@ class Notifications_mdl extends MY_Model
         else
         {
             
-            return FALSE;
+             return FALSE;
             
         }
         
@@ -75,5 +75,30 @@ class Notifications_mdl extends MY_Model
       
   }
   
+  function get_last_notification($user_id)
+  {
+
+        $this->db->select('*');
+        
+        $this->db->from('gc_user_notifications');
+
+        $this->db->join('gc_notifications', 'gc_user_notifications.user_id = ' . $user_id . '  AND gc_user_notifications.notification_id = gc_notifications.notification_id ORDER BY created_on ASC LIMIT 1');
+
+        $query = $this->db->get();
+        
+        if($query)
+        {
+            
+            return $query->result();
+            
+        }
+        else
+        {
+            
+            return FALSE;
+                
+        }
+        
+    }
   
 }
