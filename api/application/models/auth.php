@@ -138,10 +138,12 @@ class Auth extends MY_Model
           
           $user_token = $this->encrypt->encode(time() + $exists->user_id);
           
+          $private_token = $this->encrypt->decode($user_token);
+          
           $data = array(
               
                  "user_id" => $exists->user_id,
-                 "token" => $user_token,
+                 "token" => $private_token,
                  "created_on" => time(),
                  "expired" => 0
               
@@ -357,69 +359,53 @@ class Auth extends MY_Model
        public function authenticate_token($formData)
       {
            
-           if(isset($formData["expired"]))
-           {
-               
-               $update_args = $formData;
-               
-           }
+         $decode_token = $this->encrypt->decode($formData["token"]);
+         
+         $this->db->select("*");
            
-            $this->db->select("token");
-
-            $this->db->from("gc_user_tokens");
-
-            $this->db->where(array("user_id" => $formData["user_id"], "expired" => 0, "token" => $formData["token"]));
-
-            $query = $this->db->get();
-
-            if ($query->num_rows() > 0)
-            {
-                
-                $row = $query->row(); 
-
-                $token = $row->token;
+         $this->db->where(array("user_id" => $formData["user_id"], "token" => $decode_token));
+         
+         $query = $this->db->get("gc_user_tokens");
+         
+         $row = $query->row_array(); 
+         
+         if($query->num_rows > 0)
+         {
+              
+             if(array_key_exists("expired", $formData))
+             {
+                 $this->db->where(array("user_id" => $formData["user_id"], "token" => $decode_token));
+                 
+                 $this->db->set("expired", time());
+                 
+                 $this->db->update('gc_user_tokens');
+                 
+             }
              
-                $enc_token = $token;
-                
-                if($enc_token === $formData["token"])
-                {
-                    
-                    if(isset($formData["expired"]))
-                    {
-                        
-                        $this->db->where(array("user_id" => $formData["user_id"], "expired" => 0, "token" => $formData["token"]));
-                        
-                        $this->db->set($formData);
-                        
-                        $this->db->update("gc_user_tokens");
-                        
-                    }
-                    
-                    $result = new StdClass();
-                    $result->status = 200;
-                    
-                   
-                }
-                else
-                {
-                    
-                    $result = new StdClass();
-                    $result->status = 403;
-                    $result->message = "Invalid login";
-                    
-                }
-                
-                return $result;
-                
-            }
-            else
-            {
-                
-                return false;
-                
-            }
+             $result = new stdClass();
+             $result->message = "OK";
+             $result->status = 200;
+             
+         }
+         elseif($query->num_rows > 2)
+         {
+             
+             $result = new stdClass();
+             $result->status = 403;
+             $result->message = "Invalid session id.";
+             
+         }
+         else
+         {
+             
+             $result = new stdClass();
+             $result->status = 403;
+             $result->message = "Your session has timed out.";
+             
+         }
+         
+         return $result;
            
       }
-
           
 }

@@ -158,28 +158,38 @@ class Gcusers extends REST_Controller
             
             if($this->get('user_id'))
             {
+                
+                $token = array(
+                    
+                                "user_id" => $this->get('user_id'), 
+                                "token" => $this->input->post("token")
+                        
+                               );
+                
+                if($this->input->post("action") == "logout")
+                {
+                    
+                    $token["expired"] = true;
+                    
+                }
+                            
+                    $token_auth = $this->auth->authenticate_token($token);
+
+                    if($token_auth->status == 403)
+                    {
+
+                         $response = array(
+                                            "message" => $token_auth->message,
+                                            "callback" => $this->input->post("action")
+                                    );
+
+                    $this->response($response, 403);
+
+                    }
+                    else {
              
                         if($this->input->post("action") == "edit-profile"  && $this->input->post("token"))
                         {
-                            
-                           $token = array(
-                                            "user_id" => $this->get('user_id'), 
-                                            "token" => $this->input->post("token")
-                                        );
-                            
-                            $token_auth = $this->auth->authenticate_token($token);
-                            
-                            if($token_auth->status === 403)
-                            {
-                                
-                                 $response = array(
-                                                    "message" => $token_auth->message,
-                                                    "callback" => "edit-profile"
-                                            );
-
-                            $this->response($response, 403);
-                                
-                            }
                             
                             $this->form_validation->set_rules('first_name', 'First Name', 'required|xss_clean');
                             $this->form_validation->set_rules('last_name', 'Last Name', 'required|xss_clean');
@@ -295,7 +305,6 @@ class Gcusers extends REST_Controller
                             
                             elseif($this->input->post("action") == "logout")
                             {
-                                
                                 $formData = array("user_id" => $this->get("user_id"), "token" => $this->input->post("token"), "expired" => time());
                         
                                 $token_auth = $this->auth->authenticate_token($formData);
@@ -312,15 +321,11 @@ class Gcusers extends REST_Controller
 
                                     }
                                     
-                                    else
-                                    {
-
-                                            $response = array("message" => "Success", "callback" => "logout");
-                                            $this->response($response, 200);
-
-                                    }
-
+                                    $response = "Logout ok";
+                                    $this->response($response, 200);
+                                    
                             }
+                    }
                     
             }
            
