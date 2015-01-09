@@ -78,11 +78,11 @@ class Notifications_mdl extends MY_Model
   function get_last_notification($user_id)
   {
 
-        $this->db->select('*');
+        $this->db->select('usage_level, next');
         
-        $this->db->from('gc_user_notifications');
-
-        $this->db->join('gc_notifications', 'gc_user_notifications.user_id = ' . $user_id . '  AND gc_user_notifications.notification_id = gc_notifications.notification_id ORDER BY created_on ASC LIMIT 1');
+        $this->db->from('gc_users');
+        
+        $this->db->join('gc_notifications', 'gc_users.usage_level = gc_notifications.notification_id');
 
         $query = $this->db->get();
         

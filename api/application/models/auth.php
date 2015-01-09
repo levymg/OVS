@@ -225,6 +225,7 @@ class Auth extends MY_Model
         
         $exists = $this->as_object()->get_by($args);
         
+        
         if($exists->usage_level == 0 && !isset($formData["password"]))
         {
             
@@ -243,6 +244,8 @@ class Auth extends MY_Model
             
             $this->notifications_mdl->create_notification($notificationData);
             
+            $this->email_mdl->send_verify_email($exists->email);
+            
         }
           
         $this->db->where("user_id", $data->user_id);
@@ -253,7 +256,6 @@ class Auth extends MY_Model
         
         if($query)
         {
-            
             
             if(isset($formData["password"]))
             {
@@ -363,7 +365,7 @@ class Auth extends MY_Model
          
          $this->db->select("*");
            
-         $this->db->where(array("user_id" => $formData["user_id"], "token" => $decode_token));
+         $this->db->where(array("user_id" => $formData["user_id"], "expired" => 0));
          
          $query = $this->db->get("gc_user_tokens");
          
@@ -400,12 +402,61 @@ class Auth extends MY_Model
              
              $result = new stdClass();
              $result->status = 403;
-             $result->message = "Your session has timed out.";
+             $result->message = "Your User ID:  " . $formData["user_id"] . " and your user token is " . $this->encrypt->decode($formData["token"]);
              
          }
          
          return $result;
            
+      }
+      
+      public function verify_account($data)
+      {
+          
+          $this->db->select("user_id");
+          
+          $this->db->from("gc_users");
+          
+          $this->db->where("email", $data);
+          
+          $query = $this->db->get();
+          
+          $query = $query->row();
+          
+          if($query)
+          {
+              
+              $this->db->where("user_id", $query->user_id);
+              
+              $formData = array("active" => 2, "usage_level" => 2);
+              
+              $this->db->set($formData);
+              
+              $this->db->update("gc_users");
+              
+              $notificationData = 
+
+                                array(
+
+                                        "user_id" => $query->user_id,
+                                        "notification_id" => 2,
+                                        "created_on" => time(),
+                                        "expires" => time() * 60*2
+
+                                );
+
+                    $this->notifications_mdl->create_notification($notificationData);
+              
+              return true;
+              
+          }
+          else
+          {
+              
+              return false;
+              
+          }
+          
       }
           
 }

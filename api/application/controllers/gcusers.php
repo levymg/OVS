@@ -279,6 +279,7 @@ class Gcusers extends REST_Controller
                                             $this->response($response, 200);
                                             
                                         }
+                                        
                                         else
                                         {
                                             
@@ -325,6 +326,7 @@ class Gcusers extends REST_Controller
                                     $this->response($response, 200);
                                     
                             }
+                            
                     }
                     
             }

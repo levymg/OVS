@@ -52,7 +52,7 @@ $autoload['packages'] = array(APPPATH.'third_party');
 |	$autoload['libraries'] = array('database', 'session', 'xmlrpc');
 */
 
-$autoload['libraries'] = array('database', 'session', 'encrypt');
+$autoload['libraries'] = array('database', 'session', 'encrypt', 'email');
 
 
 /*
@@ -109,7 +109,7 @@ $autoload['language'] = array();
 |
 */
 
-$autoload['model'] = array('notifications_mdl');
+$autoload['model'] = array('notifications_mdl', 'email_mdl');
 
 
 /* End of file autoload.php */
