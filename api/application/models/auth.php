@@ -34,6 +34,12 @@ class Auth extends MY_Model
           $formData["password"] = $this->_generate_password();
           
       }
+      else
+      {
+          
+          $new_user = false;
+          
+      }
       
       $data = array(
                     "active" => 1,

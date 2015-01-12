@@ -87,6 +87,12 @@ class Gcgs extends REST_Controller
                                 );
                     
                 }
+                else
+                {
+                    
+                    $gradesheets = explode(",", $this->input->post("gradesheets"));
+                    
+                }
                     $this->form_validation->set_rules('first_name', 'First Name', 'required|xss_clean');
                     $this->form_validation->set_rules('last_name', 'Last Name', 'required|xss_clean');
                     $this->form_validation->set_rules('company', 'Company', 'required|xss_clean');
@@ -111,6 +117,9 @@ class Gcgs extends REST_Controller
                             
                             if($register === true)
                             {
+                                
+                                $user_id = "";
+                                
                                 $formData = array(
                                     
                                                     "email" => $this->input->post("email"), 
@@ -123,28 +132,33 @@ class Gcgs extends REST_Controller
                                 
                                 $this->auth->create_user($formData);
                                
-                                $response = new StdClass();
-                                
-                                $response->message = "New user being created";
-                                
-                                $response->status = 200;
-
-                                $this->response($response->message, $response->status);
-                                
                             }
+                            
                             else
                             {
                                 
-                                $response = new StdClass();
-                                
-                                $response->message = "User already specified";
-                                
-                                $response->status = 200;
-
-                                $this->response($response->message, $response->status);
+                                $user_id = $this->get("user_id");
                                 
                             }
-                            
+                           
+                            $formData = array(
+
+                                    "created_on" => time(),
+                                    "user_id" => $user_id,
+                                    "first_name" => $this->input->post("first_name"),
+                                    "last_name" => $this->input->post("last_name"),
+                                    "industry" => "Wildcard",
+                                    "company" => $this->input->post("company"),
+                                    "gradesheets" => $gradesheets,
+                                    "selections" => "None",
+                                    "ip_address" => $this->input->ip_address()
+
+                            );
+
+                            $response = $this->industries_mdl->create_gcgs($formData);
+
+                            $this->response($response->message, $response->status);
+                                
                         }
                 
             }

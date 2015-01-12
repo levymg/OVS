@@ -13,6 +13,36 @@ class Industries_mdl extends MY_Model
       
   }
   
+  public function create_gcgs($formData)
+  {
+      
+      $response = new StdClass();
+
+      $query = $this->db->insert("gc_gradesheet_submissions", $formData);
+      
+      if($query)
+      {
+          
+          $response->message = "Record Added";
+
+          $response->status = 200;
+          
+          return $response;
+          
+      }
+      else
+      {
+          
+          $response->message = "Something went wrong.";
+
+          $response->status = 403;
+          
+          return $response;
+          
+      }
+      
+  }
+  
   public function get_industries()
   {
       
