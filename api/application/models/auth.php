@@ -17,7 +17,7 @@ class Auth extends MY_Model
   public function get_users()
   {
       
-      $result = $this->get();
+      $result = $this->get_all();
       
       return $result->result();
       
@@ -26,6 +26,14 @@ class Auth extends MY_Model
   
   public function create_user($formData)
   {
+      
+      if($formData["password"] === null)
+      {
+          $new_user = true;
+          
+          $formData["password"] = $this->_generate_password();
+          
+      }
       
       $data = array(
                     "active" => 1,
@@ -38,6 +46,15 @@ class Auth extends MY_Model
                     "modified_on" => time(),
                     "usage_level" => 0
                 );
+      
+      if($new_user === true)
+      {
+          
+          $data["first_name"] = $formData["first_name"];
+          $data["last_name"] = $formData["last_name"];
+          $data["company"] = $formData["company"];
+          
+      }
       
       $exists = $this->get_by('email', $data["email"]);
       
@@ -56,6 +73,12 @@ class Auth extends MY_Model
         $result = $this->insert($data, FALSE);
         
         if($result) :
+            
+            if($new_user === true) :
+                
+                $this->email_mdl->welcome_email($formData);
+                
+            endif;
             
             $response = new StdClass();
             $response->status = 200;
@@ -456,6 +479,13 @@ class Auth extends MY_Model
               return false;
               
           }
+          
+      }
+      
+      private function _generate_password($l = 8)
+      {
+          
+           return substr(md5(uniqid(mt_rand(), true)), 0, $l);
           
       }
           
