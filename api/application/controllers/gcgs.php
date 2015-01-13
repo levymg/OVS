@@ -5,6 +5,8 @@ require APPPATH.'/libraries/REST_Controller.php';
 class Gcgs extends REST_Controller
 {
     
+    public $_attachment;
+    
 	function __construct()
         {
             parent::__construct();
@@ -63,11 +65,15 @@ class Gcgs extends REST_Controller
             if(!$this->get("user_id"))
             {
                 
+                $user_id = 0;
+                
                 $register = true;
                 
             }
             else
             {
+                
+                $user_id = $this->get("user_id");
                 
                 $register = false;
                 
@@ -90,7 +96,7 @@ class Gcgs extends REST_Controller
                 else
                 {
                     
-                    $gradesheets = explode(",", $this->input->post("gradesheets"));
+                    $gradesheets = $this->input->post("gradesheets");
                     
                 }
                     $this->form_validation->set_rules('first_name', 'First Name', 'required|xss_clean');
@@ -145,6 +151,7 @@ class Gcgs extends REST_Controller
 
                                     "created_on" => time(),
                                     "user_id" => $user_id,
+                                    "email" => $this->input->post("email"),
                                     "first_name" => $this->input->post("first_name"),
                                     "last_name" => $this->input->post("last_name"),
                                     "industry" => "Wildcard",
@@ -154,9 +161,13 @@ class Gcgs extends REST_Controller
                                     "ip_address" => $this->input->ip_address()
 
                             );
-
+                            
+                            $gs_array = explode(",", $gradesheets);
+                            
                             $response = $this->industries_mdl->create_gcgs($formData);
 
+                            $this->email_mdl->send_gradesheets($this->input->post("email"), $gs_array);
+                              
                             $this->response($response->message, $response->status);
                                 
                         }
@@ -170,6 +181,35 @@ class Gcgs extends REST_Controller
                 
             }
             
+        }
+        
+        function gradesheets_post()
+        {
+            
+            if(!$this->input->post("resource_id"))
+            {
+                
+                $this->response(array("error" => "No industry specified.", 403));
+                
+            }
+            
+          
+            $response = $this->industries_mdl->get_gradesheets($this->input->post());
+                
+            if($response)
+            {
+
+                $this->response($response, 200);
+
+            }
+            
+            else
+            {
+
+                $this->response(array("message" => "SCOOPS"), 403);
+
+            }
+                
         }
         
 }

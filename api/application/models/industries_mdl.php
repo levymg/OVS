@@ -6,7 +6,7 @@ class Industries_mdl extends MY_Model
   public $_table = "gc_industries";
   
   public $primary_key = 'resource_id';
-
+  
   public function __construct()
   {
      parent::__construct();
@@ -17,6 +17,21 @@ class Industries_mdl extends MY_Model
   {
       
       $response = new StdClass();
+      
+      $this->db->select("user_id");
+      
+      $this->db->where("email", $formData["email"]);
+      
+      $query = $this->db->get("gc_users");
+      
+      if($query->num_rows > 0)
+      {
+          
+          $row = $query->row();
+          
+          $formData["user_id"] = $row->user_id;
+          
+      }
 
       $query = $this->db->insert("gc_gradesheet_submissions", $formData);
       
@@ -40,6 +55,85 @@ class Industries_mdl extends MY_Model
           return $response;
           
       }
+      
+  }
+  
+  public function get_gradesheets($formData)
+  {
+      
+      if(!isset($formData["gr"]))
+      {
+          
+            if($formData["cr"] == 3)
+            {
+
+                $args = array("properties_hook" => 2, "industry_id" => $formData["resource_id"]);
+
+            }
+
+            if($formData["ir"] == 3)
+            {
+
+                $args = array("properties_hook" => 1, "industry_id" => $formData["resource_id"]);
+
+            }
+            
+      }
+      else
+      {
+          
+           if($formData["gr"] == 3)
+            {
+
+                $args = array("properties_hook" => 3, "industry_id" => $formData["resource_id"]);
+
+            }
+
+            if($formData["cr"] == 3)
+            {
+
+                $args = array("properties_hook" => 2, "industry_id" => $formData["resource_id"]);
+
+            }
+            
+            if($formData["ir"]  == 3)
+            {
+                
+                $args = array("properties_hook" => 1, "industry_id" => $formData["resource_id"]);
+                        
+            }
+            
+          
+      }
+      
+      if(!isset($args))
+      {
+          
+          $args = array("properties_hook" => 0, "industry_id" => $formData["resource_id"]);
+          
+      }
+
+      
+      $this->db->select("gradesheet");
+      
+      $this->db->where($args);
+      
+      $query = $this->db->get("gc_industry_gradesheets");
+      
+      if($query->num_rows() > 0)
+      {
+          
+          
+          return $query->result();
+          
+      }
+      else
+      {
+         
+           return false;
+               
+      }
+      
       
   }
   
