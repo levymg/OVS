@@ -24,6 +24,7 @@ class Auth extends MY_Model
       
   }
   
+  
   public function create_user($formData)
   {
       

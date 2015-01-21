@@ -153,10 +153,104 @@ class Email_mdl extends MY_Model {
         
     }
     
-    public function send_gradesheets($data, $gradesheets)
+    public function send_gradesheets($data, $gradesheets, $selections)
     {
         
         $print_grades = implode(",",$gradesheets);
+        
+        $print_selections = implode(",", $selections);
+        
+        foreach($selections as $key => $selection)
+        {
+            
+            if($key === 0)
+            {
+                
+                $this->db->select("industry_name");
+                
+                $this->db->where("resource_id", $selection);
+                
+                $query = $this->db->get("gc_industries");
+                
+                $row = $query->row();
+                
+                $print_selections = "<table style='border:1px solid #ccc;'><tr><th style='background-color:#000;color:#fff;font-weight:800;padding:8px;'>" . $row->industry_name . "</th></tr>";
+                
+            }
+            
+            if($key === 1 || $key === 2 || $key === 3)
+            {
+                
+                switch($key)
+                {
+                    case 1:
+                        
+                        $key = "Impact Resistance";
+                        
+                        break;
+                    
+                    case 2:
+                        
+                        $key = "Corrosion Resistance";
+                        
+                        break;
+                    
+                    case 3:
+                        
+                        $key = "Gall/Adhesive Resistance";
+                        
+                        break;
+                    
+                    case 5:
+                        
+                        $key = "Wire/WEDM";
+                        
+                        break;
+                }
+                
+                switch($selection)
+                {
+                    
+                    case 1:
+                        
+                        $selection = "Not Important";
+                        
+                        break;
+                    
+                    case 2:
+                        
+                        $selection = "Somewhat Important";
+                        
+                        break;
+                    
+                    case 3:
+                        
+                        $selection = "Very Important";
+                        
+                        break;
+                    
+                    case 4:
+                        
+                        $key = "Wire/WEDM";
+                        
+                        $selection = "Yes";
+                        
+                        break;
+                    
+                    case 5:
+                        
+                        $key = "Wire/WEDM";
+                        
+                        $selection = "No";
+                }
+                
+                $print_selections .= "<tr><td><strong>" . $key . "</strong>: " . $selection . "</td></tr>";
+                
+            }
+           
+        }
+        
+        $print_selections .= "</table>";
         
         $message = "<html>
                                 <body>
@@ -183,6 +277,10 @@ class Email_mdl extends MY_Model {
                                                                  A request has been made for the gradesheets: <strong> " . $print_grades . " </strong>
                                                              </p>
                                                              
+                                                             <p style='color:#000;'>You have made the following selections:</p>
+                                                             
+                                                             " . $print_selections . "
+                                                             
                                                              <p style='color:#000;'>
                                                                 The application data is attahced to this e-mail in PDF format.
                                                              </p>
@@ -201,7 +299,7 @@ class Email_mdl extends MY_Model {
                                                               </p>
                                                         </td>
                                                         <td style='width:50%;'>
-                                                                <img src='http://www.generalcarbide.com/images/iphone.png' alt='Welcome to General Carbide Mobile' title='Welcome to General Carbide Mobile' />
+                                                                <img src='http://www.generalcarbide.com/images/iphone-gs.png' alt='Welcome to General Carbide Mobile' title='Welcome to General Carbide Mobile' />
                                                         </td>
                                                     </tr>
                                                 </table>

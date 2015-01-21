@@ -10,6 +10,7 @@ class Gcusers extends REST_Controller
             parent::__construct();
             
             $this->load->model("auth");
+            $this->load->model("industries_mdl");
             
             $this->load->library('form_validation');
             $this->load->library("MY_Form_validation");
@@ -39,6 +40,7 @@ class Gcusers extends REST_Controller
                                     "phone" => $user->phone,
                                     "company" => $user->company,
                                     "usage_level" => $user->usage_level,
+                                    "my_gradesheets" => $this->industries_mdl->user_gradesheets($this->get('resource_id')),
                                     "last_login" => time()
                         
                             );
