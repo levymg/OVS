@@ -195,6 +195,7 @@ class Gcgs extends REST_Controller
                                     "first_name" => $this->input->post("first_name"),
                                     "last_name" => $this->input->post("last_name"),
                                     "company" => $this->input->post("company"),
+                                    "industry_id" => $this->input->post("industry"),
                                     "selections" => $selections,
                                     "gradesheets" => $gradesheets,
                                     "ip_address" => $this->input->ip_address()

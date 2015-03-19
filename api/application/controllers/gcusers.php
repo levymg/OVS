@@ -14,6 +14,8 @@ class Gcusers extends REST_Controller
             
             $this->load->library('form_validation');
             $this->load->library("MY_Form_validation");
+            
+            $response = new StdClass();
         }
     
         function user_get()
@@ -39,6 +41,7 @@ class Gcusers extends REST_Controller
                                     "last_name" => $user->last_name,
                                     "phone" => $user->phone,
                                     "company" => $user->company,
+                                    "industry_id" => $user->industry_id,
                                     "usage_level" => $user->usage_level,
                                     "my_gradesheets" => $this->industries_mdl->user_gradesheets($this->get('resource_id')),
                                     "last_login" => time()
@@ -196,6 +199,7 @@ class Gcusers extends REST_Controller
                             $this->form_validation->set_rules('first_name', 'First Name', 'required|xss_clean');
                             $this->form_validation->set_rules('last_name', 'Last Name', 'required|xss_clean');
                             $this->form_validation->set_rules('company', 'Company', 'required|xss_clean');
+                            $this->form_validation->set_rules('industry_id', 'Industry', 'required|xss_clean');
                             $this->form_validation->set_rules('phone', 'Phone', 'required|xss_clean');
                             
                             if ($this->form_validation->run() == TRUE)
@@ -206,6 +210,7 @@ class Gcusers extends REST_Controller
                                                     "first_name" => $this->input->post("first_name"),
                                                     "last_name" => $this->input->post("last_name"),
                                                     "company" => $this->input->post("company"),
+                                                    "industry_id" => $this->input->post("industry_id"),
                                                     "phone" => $this->input->post("phone"),
                                                     "user_id" => $this->get("user_id")
                                     
@@ -388,6 +393,44 @@ class Gcusers extends REST_Controller
                 
             }
             
+        }
+        
+        function gcrequest_post()
+        {
+            
+            if(!$this->get("user_id"))
+            {
+                
+                $response->message = "No username specified.";
+                $response->statusCode = 403;
+                
+            }
+            else
+            {
+              
+                $gradesheets = explode(",", $this->input->post('gradesheets'));
+                
+                $result = $this->auth->send_gradesheet($this->get("user_id"), $gradesheets);
+                
+                if($result)
+                {
+                    
+                    $response->message = "The requested gradesheets have been e-mailed to you.";
+                    $response->statusCode = 200;
+                    
+                }
+                else
+                {
+                    
+                    $response->message = "There was an error retrieving your account information.";
+                    $response->statusCode = 403;
+                    
+                }
+                                
+            }
+            
+            $this->response($response->message, $response->statusCode);
+                
         }
         
 }

@@ -40,6 +40,13 @@ class Qa_mdl extends MY_Model
       
   }
   
+  public function add_question($data)
+  {
+      
+        
+      
+  }
+  
  
   
 }

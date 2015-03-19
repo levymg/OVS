@@ -68,7 +68,7 @@ class Industries_mdl extends MY_Model
       if($query)
       {
           
-          $response->message = "The gradesheets you have requested have been e-mailed to " . $formData["email"];
+          $response->message = "<span style='color:#cc0033'><strong>The gradesheets you have requested have been e-mailed to " . $formData["email"] . "</strong></span>";
 
           $response->status = 200;
           

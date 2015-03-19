@@ -28,6 +28,8 @@ class Gcqa extends REST_Controller
             
         }
         
+        
+        
         function question_get()
         {
             
@@ -43,7 +45,17 @@ class Gcqa extends REST_Controller
             if($question)
             {
                 
-                $this->response($question, 200);
+                $response = array(
+
+                         "title" => $question->title,
+                         "date" => date("m/d/Y", $question->created_on),
+                         "time" => date("h:i:s", $question->created_on),
+                         "user_id" => $question->user_id,
+                         "content" => $question->content,
+
+                 );
+                
+                $this->response($response, 200);
                 
             }
             
@@ -52,8 +64,30 @@ class Gcqa extends REST_Controller
         function question_post()
         {
             
+            if(!$this->input->post('user_id'))
+            {
+                
+                $this->response(array("message" => "Please login to your Toolbox account."), 403);
+                
+            }
+            
+            else
+            {
+            
+                $result = $this->auth->authenticate_token($this->input->post("user_id"), $this->input->post("token"));
+                
+                if($result):
+                    
+                    $this->form_validation->set_rules('title', 'Title', 'required|xss_clea');
+                    $this->form_validation->set_rules('question', 'Question', 'required|xss_clean');
+                    
+                    $this->qa_mdl->add_question($this->input->post());
+                
+                endif;
+                
+            }
+            
             
         }
-        
         
 }

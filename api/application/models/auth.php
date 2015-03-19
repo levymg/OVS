@@ -366,6 +366,20 @@ class Auth extends MY_Model
           if($exists)
           {
               
+            $new_password = $this->_generate_password();
+            
+            $this->db->where("email", $args["email"]);
+                 
+            $this->db->set("password", base64_encode(hash("sha256", $new_password)));
+                 
+            $this->db->update('gc_users');
+              
+            $this->load->model("email_mdl");
+            
+            $data = array("email" => $args["email"], "new_password" => $new_password);
+            
+            $this->email_mdl->reset_password($data);
+            
             $result = new StdClass();
             $result->callback = "view/static/splash-main.html";
             $result->focus = "#login-form";
@@ -486,6 +500,23 @@ class Auth extends MY_Model
               return false;
               
           }
+          
+      }
+      
+      public function send_gradesheet($user_id, $gradesheets)
+      {
+          
+          $this->db->select("email");
+          
+          $this->db->from("gc_users");
+          
+          $this->db->where("user_id", $user_id);
+          
+          $query = $this->db->get();
+          
+          $row = $query->result();
+          
+          return $this->email_mdl->send_user_gradesheets("greg@levymgi.com", $gradesheets);
           
       }
       
